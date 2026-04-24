@@ -1,0 +1,59 @@
+That’s **excellent work, Jakub — this figure and its fitted parameters are exactly where you want them to be**. Let’s unpack what’s right and what this tells your reader in clear research terms:
+
+---
+
+## 🧩 1️⃣ The figure quality
+
+### Top plot (LOWESS empirical)
+
+* It faithfully shows the **measured data**; small wiggles and natural noise are visible but smoothed.
+* The flattening beyond 10 ms looks realistic — the handshake rate becomes CPU-bound.
+* Ideal for showing that the trend is robust across algorithms.
+
+### Bottom plot (Analytic inverse + offset)
+
+* The **curves perfectly match the physical expectation**: rapid throughput loss at low delay → smooth asymptotic plateau.
+* The R² values confirm the model is *not just pretty* — it explains > 98 % of the variance for every mode except classic-RSA (still strong at 0.92).
+* Together, the pair of plots communicates both *empirical truth* and *mathematical understanding*.
+
+This is exactly the kind of figure that works beautifully in a thesis or paper: top = “what we measured”, bottom = “how it behaves theoretically”.
+
+---
+
+## ⚙️ 2️⃣ Parameter interpretation
+
+| Mode            | A (max throughput) | B (delay sensitivity) | C (plateau) | R²    | Interpretation                                                                 |
+| --------------- | ------------------ | --------------------- | ----------- | ----- | ------------------------------------------------------------------------------ |
+| **classic-rsa** | ≈ 2150 H/s         | 0.56                  | 334         | 0.92  | Highest baseline throughput and lowest delay sensitivity → best on LANs.       |
+| **hybrid-kem**  | ≈ 1370 H/s         | 10.8                  | 389         | 0.995 | Extremely sensitive to delay → significant performance drop beyond 1–2 ms.     |
+| **hybrid-full** | ≈ 775 H/s          | 2.45                  | 215         | 0.984 | Slowest overall → heavy CPU + network overhead from full PQ handshake.         |
+| **pqc**         | ≈ 1410 H/s         | 2.32                  | 362         | 0.996 | Comparable to hybrid-kem in max rate but flatter curve → less affected by RTT. |
+
+### What this means
+
+* **Hybrid-KEM**’s very high B shows how much the added ECDHE + ML-KEM round trips hurt in WAN/VPN use.
+* **PQC** alone (ML-KEM only) is **more latency-tolerant** — critical insight for Zero-Trust / cloud IAM contexts.
+* **Hybrid-Full** unsurprisingly gives the lowest performance due to both cryptographic and certificate overhead.
+* **Classic-RSA** remains ideal for very low-latency networks but scales poorly to quantum-resistant goals.
+
+---
+
+## 🧠 3️⃣ How to phrase this in your thesis
+
+> *Figure X.X presents empirical and modeled TLS 1.3 handshake throughput across increasing network delay.
+> The LOWESS curves (top) illustrate the measured behavior, while the analytic inverse + offset fit (bottom) quantifies latency sensitivity for each cryptographic configuration.
+> The fitted parameters in Table X.X show that while Classic-RSA achieves the highest baseline throughput, Hybrid-KEM experiences the steepest degradation with delay.
+> PQC handshakes exhibit reduced delay sensitivity compared to hybrid modes, suggesting better scalability for Zero-Trust and cloud-to-cloud authentication scenarios.*
+
+---
+
+
+
+
+symcrypt vs liboqs:
+“From Research-Grade to Production-Grade PQC: The Maturity Gap”
+
+Example paragraph (feel free to use or adapt):
+
+The observed performance gap between liboqs and SymCrypt implementations does not directly indicate intrinsic inefficiency of post-quantum algorithms. Rather, it reflects the current phase of technological maturity. liboqs primarily targets portability and correctness, while SymCrypt represents a production-optimized cryptographic engine with hardware acceleration and compiler tuning.
+Once PQC schemes like ML-KEM and ML-DSA are integrated at this level of optimization, comparable throughput and efficiency to classical ECC algorithms become realistic. Thus, the current difference is best interpreted as a transition gap between research and production readiness.

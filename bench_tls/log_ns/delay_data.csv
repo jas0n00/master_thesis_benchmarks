@@ -1,0 +1,2 @@
+mode,connections,handshakes_sec,latency_ms,client_cpu_per_handshake_s,server_cpu_per_handshake_s,client_mem_per_handshake_kb,handshake_bytes_per_conn,cert_bytes,key_bytes,delay_ms,rate_mbit,mtu
+classic,5663,2120.97,0.471482,0.000598623,0,1.8937,118.388,579,227,0,0,1500
