@@ -172,11 +172,3 @@ mode,delay_ms,handshakes_sec
 ```python
 df["client_cpu_per_handshake_s"] + df["server_cpu_per_handshake_s"]
 ```
-
-## Troubleshooting
-
-If you see `OQS OpenSSL not found`, confirm that the OQS-enabled OpenSSL binary exists or update the `OQS` path in `tls_bench_ns.sh`.
-
-If namespace setup fails, run the benchmark with `sudo` and make sure `iproute2` is installed.
-
-If packet-size metrics are zero, install `tshark`. The benchmark can still run without it, but TLS handshake byte counting may not be available.
