@@ -69,22 +69,105 @@ From this folder:
 cd bench_algos
 ```
 
-Example compilation commands:
+### SymCrypt include-path note
+
+The SymCrypt benchmarks require both the SymCrypt header file and the SymCrypt shared library. On some Linux installations, the header is installed as:
+
+```text
+/usr/local/include/symcrypt/symcrypt.h
+```
+
+In that case, the correct include path is:
+
+```bash
+-I/usr/local/include/symcrypt
+```
+
+not only:
+
+```bash
+-I/usr/local/include
+```
+
+This is necessary because the benchmark source files use:
+
+```c
+#include <symcrypt.h>
+```
+
+and GCC must be given the directory that directly contains `symcrypt.h`.
+
+You can verify the header location with:
+
+```bash
+find /usr /usr/local /opt ~/ -name "symcrypt.h" 2>/dev/null
+```
+
+You can verify that the SymCrypt library is visible with:
+
+```bash
+ldconfig -p | grep symcrypt
+```
+
+### Example compilation commands
+
+If SymCrypt is installed under `/usr/local/include/symcrypt` and `/usr/local/lib`, use:
 
 ```bash
 # SymCrypt benchmarks
- gcc symcrypt_scripts/mlkem_bench.c      -o mlkem_bench      -lsymcrypt
- gcc symcrypt_scripts/benchmark_mldsa.c  -o mldsa_bench      -lsymcrypt
- gcc symcrypt_scripts/ecdsa_bench.c      -o ecdsa_bench      -lsymcrypt
- gcc symcrypt_scripts/x25519_bench.c     -o x25519_bench     -lsymcrypt
- gcc symcrypt_scripts/rsa_bench.c        -o rsa_bench        -lsymcrypt -lcrypto
+gcc symcrypt_scripts/mlkem_bench.c      -I/usr/local/include/symcrypt -L/usr/local/lib -Wl,-rpath,/usr/local/lib -o mlkem_bench  -lsymcrypt
+gcc symcrypt_scripts/benchmark_mldsa.c  -I/usr/local/include/symcrypt -L/usr/local/lib -Wl,-rpath,/usr/local/lib -o mldsa_bench  -lsymcrypt
+gcc symcrypt_scripts/ecdsa_bench.c      -I/usr/local/include/symcrypt -L/usr/local/lib -Wl,-rpath,/usr/local/lib -o ecdsa_bench  -lsymcrypt
+gcc symcrypt_scripts/x25519_bench.c     -I/usr/local/include/symcrypt -L/usr/local/lib -Wl,-rpath,/usr/local/lib -o x25519_bench -lsymcrypt
+gcc symcrypt_scripts/rsa_bench.c        -I/usr/local/include/symcrypt -L/usr/local/lib -Wl,-rpath,/usr/local/lib -o rsa_bench    -lsymcrypt -lcrypto
 
 # liboqs benchmarks
- gcc oqs_scripts/kem_libsqs.c            -o kem_liboqs       -loqs
- gcc oqs_scripts/oqs_sig_bench.c         -o oqs_sig_bench    -loqs
+gcc oqs_scripts/kem_libsqs.c            -o kem_liboqs       -loqs
+gcc oqs_scripts/oqs_sig_bench.c         -o oqs_sig_bench    -loqs
 ```
 
-If compilation fails because a header or library cannot be found, compile with explicit paths, for example:
+If your SymCrypt header is located in the source tree, for example:
+
+```text
+/home/jakub/SymCrypt/inc/symcrypt.h
+```
+
+then use this include path instead:
+
+```bash
+-I/home/jakub/SymCrypt/inc
+```
+
+For example:
+
+```bash
+gcc symcrypt_scripts/mlkem_bench.c \
+  -I/home/jakub/SymCrypt/inc \
+  -L/usr/local/lib \
+  -Wl,-rpath,/usr/local/lib \
+  -o mlkem_bench \
+  -lsymcrypt
+```
+
+If linking fails because the system provides only a versioned shared library such as `libsymcrypt.so.103`, compile with the explicit library name:
+
+```bash
+gcc symcrypt_scripts/mlkem_bench.c \
+  -I/usr/local/include/symcrypt \
+  -L/usr/local/lib \
+  -Wl,-rpath,/usr/local/lib \
+  -o mlkem_bench \
+  -l:libsymcrypt.so.103
+```
+
+Alternatively, create a standard `libsymcrypt.so` symlink:
+
+```bash
+sudo ln -s /usr/local/lib/libsymcrypt.so.103 /usr/local/lib/libsymcrypt.so
+sudo ldconfig
+```
+
+If compilation fails because a liboqs header or library cannot be found, compile with explicit paths, for example:
 
 ```bash
 gcc oqs_scripts/oqs_sig_bench.c -I/usr/local/include -L/usr/local/lib -o oqs_sig_bench -loqs
@@ -163,6 +246,30 @@ Important generated outputs include:
 - `figures/spider_sig_pq.png`.
 
 ## Troubleshooting
+
+If a SymCrypt benchmark fails to compile with:
+
+```text
+fatal error: symcrypt.h: No such file or directory
+```
+
+then GCC cannot find the SymCrypt header. Use `find` to locate it:
+
+```bash
+find /usr /usr/local /opt ~/ -name "symcrypt.h" 2>/dev/null
+```
+
+If the result is `/usr/local/include/symcrypt/symcrypt.h`, add this flag to the compile command:
+
+```bash
+-I/usr/local/include/symcrypt
+```
+
+If the result is `/home/jakub/SymCrypt/inc/symcrypt.h`, add this flag instead:
+
+```bash
+-I/home/jakub/SymCrypt/inc
+```
 
 If the benchmark binary does not run, check that it is located directly inside `bench_algos/`, because `run_and_log.sh` executes it as `./BINARY_NAME`.
 
